@@ -12,3 +12,14 @@ void idt_set_gate(uint8_t num, uint32_t base, uint16_t selector, uint8_t flags) 
     idt_entries[num].zero = 0;
     idt_entries[num].flags = flags;
 }
+
+void idt_init(void) {
+    idt_prt.limit = sizeof(idt_entry_t) * 256 - 1;
+    idt_ptr.base = (uint32_t)&idt_entries;
+
+    for (int i = 0; i < 256; i++) {
+        idt_set_gate(i, 0, 0, 0);
+    }
+
+    idt_flush();
+}
