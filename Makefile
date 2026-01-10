@@ -1,0 +1,75 @@
+
+CC = gcc
+LD = ld
+ASM = nasm
+
+
+BUILD_DIR = build
+ISO_DIR = isodir
+
+
+CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-pie -fno-stack-protector
+LDFLAGS = -m elf_i386 -T linker.ld -nostdlib
+ASMFLAGS = -f elf32
+
+
+C_SOURCES = $(wildcard kernel/*.c kernel/drivers/*.c kernel/cpu/*.c kernel/mm/*.c kernel/libc/*.c)
+ASM_SOURCES = $(wildcard kernel/*.asm kernel/cpu/*.asm)
+
+
+C_OBJECTS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
+ASM_OBJECTS = $(patsubst %.asm, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
+OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
+
+
+KERNEL = $(BUILD_DIR)/kernel.bin
+ISO = TuiOS.iso
+
+.PHONY: all clean run iso directories
+
+all: directories $(ISO)
+
+directories:
+	@mkdir -p $(BUILD_DIR)/kernel
+ 	@mkdir -p $(BUILD_DIR)/kernel/drivers
+ 	@mkdir -p $(BUILD_DIR)/kernel/cpu
+ 	@mkdir -p $(BUILD_DIR)/kernel/mm
+ 	@mkdir -p $(BUILD_DIR)/kernel/libc
+ 	@mkdir -p $(ISO_DIR)/boot/grub
+
+
+$(BUILD_DIR)/%.o: %.c
+ 	@mkdir -p $(dir $@)
+ 	$(CC) $(CFLAGS) -c $< -o $@
+
+
+$(BUILD_DIR)/%.o: %.asm
+ 	@mkdir -p $(dir $@)
+ 	$(ASM) $(ASMFLAGS) $< -o $@
+
+
+$(KERNEL): $(OBJECTS)
+ 	$(LD) $(LDFLAGS) -o $@ $^
+
+
+$(ISO): $(KERNEL)
+ 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
+ 	echo 'set timeout=0' > $(ISO_DIR)/boot/grub/grub.cfg
+ 	echo 'set default=0' >> $(ISO_DIR)/boot/grub/grub.cfg
+ 	echo '' >> $(ISO_DIR)/boot/grub/grub.cfg
+ 	echo 'menuentry "TuiOS" {' >> $(ISO_DIR)/boot/grub/grub.cfg
+ 	echo '    multiboot /boot/kernel.bin' >> $(ISO_DIR)/boot/grub/grub.cfg
+ 	echo '    boot' >> $(ISO_DIR)/boot/grub/grub.cfg
+ 	echo '}' >> $(ISO_DIR)/boot/grub/grub.cfg
+ 	grub-mkrescue -o $(ISO) $(ISO_DIR)
+
+
+run: $(ISO)
+ 	qemu-system-i386 -cdrom $(ISO) -m 128M
+
+
+debug: $(ISO)
+ 	qemu-system-i386 -cdrom $(ISO) -m 128M -s -S
+
+clean:
+ 	rm -rf $(BUILD_DIR) $(ISO_DIR) $(ISO)
