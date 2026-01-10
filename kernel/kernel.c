@@ -20,13 +20,13 @@ typedef struct multiboot_info {
     uint32_t syms[4];
     uint32_t mmap_length;
     uint32_t mmap_addr;
-} __atribute__((packed)) multiboot_info_t;
+} __attribute__((packed)) multiboot_info_t;
 
 void kmain(uint32_t magic, multiboot_info_t* mboot) {
     screen_init();
     screen_clear();
 
-    kprint("TuiOS Kernel Starting...\n")
+    kprint("TuiOS Kernel Starting...\n");
     kprint("=========================\n\n");
 
     if (magic != 0x2BADB002) {
@@ -50,7 +50,8 @@ void kmain(uint32_t magic, multiboot_info_t* mboot) {
     asm volatile("sti");
     kprint("[OK] Interrupts enabled\n");
 
-    time_init(100);
+    kprint("Initializing timer...\n");
+    timer_init(100);
     kprint("[OK] Timer initialized\n");
 
     uint32_t total_mem = (mboot -> mem_lower + mboot -> mem_upper) * 1024;

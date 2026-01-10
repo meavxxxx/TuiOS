@@ -13,13 +13,13 @@ static void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access,
     gdt_entries[num].limit_low = (limit & 0xFFFF);
     gdt_entries[num].granularity = (limit >> 16) & 0x0F;
 
-    gdt_entries[num].granularity != gran & 0xF0;
+    gdt_entries[num].granularity |= gran & 0xF0;
     gdt_entries[num].access = access;
 }
 
 void gdt_init(void) {
     gdt_ptr.limit = (sizeof(gdt_entry_t) * 6) - 1;
-    gdt.ptr.base = (uint32_t)&gdt_entries;
+    gdt_ptr.base = (uint32_t)&gdt_entries;
 
     gdt_set_gate(0, 0, 0, 0, 0);
     gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);

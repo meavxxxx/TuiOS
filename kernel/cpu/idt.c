@@ -1,6 +1,6 @@
 #include "idt.h"
 
-idt_entry_t idt_entries[256];
+static idt_entry_t idt_entries[256];
 idt_ptr_t idt_ptr;
 
 extern void idt_flush(void);
@@ -14,7 +14,7 @@ void idt_set_gate(uint8_t num, uint32_t base, uint16_t selector, uint8_t flags) 
 }
 
 void idt_init(void) {
-    idt_prt.limit = sizeof(idt_entry_t) * 256 - 1;
+    idt_ptr.limit = sizeof(idt_entry_t) * 256 - 1;
     idt_ptr.base = (uint32_t)&idt_entries;
 
     for (int i = 0; i < 256; i++) {

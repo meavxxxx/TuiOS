@@ -7,7 +7,7 @@ static uint32_t used_pages = 0;
 static inline void bitmap_set(uint32_t page) {
     uint32_t index = page / 32;
     uint32_t bit = page % 32;
-    page_bitmap[index] != (1 << bit);
+    page_bitmap[index] |= (1 << bit);
 }
 
 static inline void bitmap_clear(uint32_t page) {

@@ -31,45 +31,45 @@ all: directories $(ISO)
 
 directories:
 	@mkdir -p $(BUILD_DIR)/kernel
- 	@mkdir -p $(BUILD_DIR)/kernel/drivers
- 	@mkdir -p $(BUILD_DIR)/kernel/cpu
- 	@mkdir -p $(BUILD_DIR)/kernel/mm
- 	@mkdir -p $(BUILD_DIR)/kernel/libc
- 	@mkdir -p $(ISO_DIR)/boot/grub
+	@mkdir -p $(BUILD_DIR)/kernel/drivers
+	@mkdir -p $(BUILD_DIR)/kernel/cpu
+	@mkdir -p $(BUILD_DIR)/kernel/mm
+	@mkdir -p $(BUILD_DIR)/kernel/libc
+	@mkdir -p $(ISO_DIR)/boot/grub
 
 
 $(BUILD_DIR)/%.o: %.c
- 	@mkdir -p $(dir $@)
- 	$(CC) $(CFLAGS) -c $< -o $@
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 
 $(BUILD_DIR)/%.o: %.asm
- 	@mkdir -p $(dir $@)
- 	$(ASM) $(ASMFLAGS) $< -o $@
+	@mkdir -p $(dir $@)
+	$(ASM) $(ASMFLAGS) $< -o $@
 
 
 $(KERNEL): $(OBJECTS)
- 	$(LD) $(LDFLAGS) -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 
 $(ISO): $(KERNEL)
- 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
- 	echo 'set timeout=0' > $(ISO_DIR)/boot/grub/grub.cfg
- 	echo 'set default=0' >> $(ISO_DIR)/boot/grub/grub.cfg
- 	echo '' >> $(ISO_DIR)/boot/grub/grub.cfg
- 	echo 'menuentry "TuiOS" {' >> $(ISO_DIR)/boot/grub/grub.cfg
- 	echo '    multiboot /boot/kernel.bin' >> $(ISO_DIR)/boot/grub/grub.cfg
- 	echo '    boot' >> $(ISO_DIR)/boot/grub/grub.cfg
- 	echo '}' >> $(ISO_DIR)/boot/grub/grub.cfg
- 	grub-mkrescue -o $(ISO) $(ISO_DIR)
+	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
+	echo 'set timeout=0' > $(ISO_DIR)/boot/grub/grub.cfg
+	echo 'set default=0' >> $(ISO_DIR)/boot/grub/grub.cfg
+	echo '' >> $(ISO_DIR)/boot/grub/grub.cfg
+	echo 'menuentry "TuiOS" {' >> $(ISO_DIR)/boot/grub/grub.cfg
+	echo '    multiboot /boot/kernel.bin' >> $(ISO_DIR)/boot/grub/grub.cfg
+	echo '    boot' >> $(ISO_DIR)/boot/grub/grub.cfg
+	echo '}' >> $(ISO_DIR)/boot/grub/grub.cfg
+	grub-mkrescue -o $(ISO) $(ISO_DIR)
 
 
 run: $(ISO)
- 	qemu-system-i386 -cdrom $(ISO) -m 128M
+	qemu-system-i386 -cdrom $(ISO) -m 128M
 
 
 debug: $(ISO)
- 	qemu-system-i386 -cdrom $(ISO) -m 128M -s -S
+	qemu-system-i386 -cdrom $(ISO) -m 128M -s -S
 
 clean:
- 	rm -rf $(BUILD_DIR) $(ISO_DIR) $(ISO)
+	rm -rf $(BUILD_DIR) $(ISO_DIR) $(ISO)

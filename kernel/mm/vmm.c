@@ -1,6 +1,8 @@
 #include "vmm.h"
 #include "pmm.h"
 #include "../cpu/isr.h"
+#include "../libc/stdint.h"
+#include "../libc/string.h"
 
 static page_directory_t* kernel_directory = 0;
 static page_directory_t* current_directory = 0;
@@ -19,9 +21,7 @@ static page_table_t* vmm_get_page_table(uint32_t virt, int create) {
         current_directory -> entries[pd_index] = phys | PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
 
         page_table_t* table = (page_table_t*)phys;
-        for (int i = 0; i < 1024; i++) {
-            table -> entries[i] = 0;
-        }
+        memset(table, 0, sizeof(page_table_t));
 
         return table;
     }
@@ -54,25 +54,43 @@ static void page_fault_handler(registers_t* regs) {
 }
 
 void vmm_init(void) {
+    extern void kprint(const char*);
+    extern void kprint_hex(uint32_t);
+
+    kprint("VMM: Allocating page directory...\n");
+
     uint32_t phys = pmm_alloc_page();
+
+    kprint("VMM: Page directory allocated");
+    //kprint_hex(phys);
+    kprint("\n");
+
     kernel_directory = (page_directory_t*)phys;
     current_directory = kernel_directory;
 
-    for (int i = 0; i < 1024; i++) {
-        kernel_directory -> entries[i] = 0;
-    }
+    kprint("VMM: Clearing directory...\n");
+
+    memset(kernel_directory, 0, sizeof(page_directory_t));
+
+    kprint("VMM: Identity mapping first 8MB...\n");
 
     for (uint32_t i = 0; i < 0x800000; i += PAGE_SIZE) {
         vmm_map_page(i, i, PAGE_PRESENT | PAGE_WRITE);
     }
 
+    kprint("VMM: Registering page fault handler...\n");
+
     register_interrupt_handler(14, page_fault_handler);
+
+    kprint("VMM: Enabling paging...\n");
 
     asm volatile("mov %0, %%cr3" :: "r" (phys));
     uint32_t cr0;
     asm volatile("mov %%cr0, %0" : "=r" (cr0));
     cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0" :: "r" (cr0));
+
+    kprint("VMM: Paging enabled!\n");
 }
 
 void vmm_map_page(uint32_t virt, uint32_t phys, uint32_t flags) {

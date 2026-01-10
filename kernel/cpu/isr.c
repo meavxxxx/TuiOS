@@ -123,17 +123,35 @@ void register_interrupt_handler(uint8_t n, isr_handler_t handler) {
 }
 
 void isr_handler(registers_t* regs) {
+    extern void kprint(const char*);
+    extern void kprint_dec(uint32_t);
+
     if (interrupt_handlers[regs -> int_no] != 0) {
         isr_handler_t handler = interrupt_handlers[regs -> int_no];
         handler(regs);
     } else {
-        kprint("Unhandled exception: ");
-        kprint(exception_messages[regs -> int_no]);
+        kprint("Unhandled exception #");
+        kprint_dec(regs -> int_no);
         kprint("\n");
-        for(;;);
+
+        if (regs -> int_no < 23) {
+            kprint(exception_messages[regs -> int_no]);
+            kprint("\n");
+        }
+
+        kprint("EIP: ");
+        kprint_dec(regs -> eip);
+        kprint(" CS: ");
+        kprint_dec(regs -> cs);
+        kprint(" EFLAGS: ");
+        kprint_dec(regs -> eflags);
+        kprint("\n");
+
+        for(;;) {
+            asm volatile("hlt");
+        }
     }
 }
-
 void irq_handler(registers_t* regs) {
     if (regs -> int_no >= 40) {
         port_byte_out(0xA0, 0x20);

@@ -13,7 +13,7 @@ static inline uint16_t vga_entry(char c, uint8_t color) {
 }
 
 static inline uint8_t vga_color(vga_color_t fg, vga_color_t bg) {
-    return fg | bd << 4;
+    return fg | bg << 4;
 }
 
 static void update_cursor(void) {
@@ -92,8 +92,8 @@ void screen_write(const char* str) {
     }
 }
 
-void screen_setcolor(uint8_t fl, uint8_t bg) {
-    current_color = vga_color(fg, bd);
+void screen_setcolor(uint8_t fg, uint8_t bg) {
+    current_color = vga_color(fg, bg);
 }
 
 void kprint(const char* str) {
@@ -106,8 +106,8 @@ void kprint_hex(uint32_t n) {
     buf[0] = '0';
     buf[1] = 'x';
 
-    for (int i = 0; i < 8; i++) {
-        buf[9 - i] = hex_chars[n & 0xF];
+    for (int i = 7; i >= 0; i++) {
+        buf[2 + i] = hex_chars[n & 0xF];
         n >>= 4;
     }
     buf[10] = '\0';

@@ -30,6 +30,6 @@ uint32_t timer_get_ticks(void) {
 void timer_wait(uint32_t ticks) {
     uint32_t end_tick = tick_count + ticks;
     while(tick_count < end_tick) {
-        asm_volatile("hlt");
+        asm volatile("hlt");
     }
 }

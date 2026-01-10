@@ -1,4 +1,4 @@
-MULTIBOOT_MAGIC equ 0x1BADB8002
+MULTIBOOT_MAGIC equ 0x1BADB002
 MULTIBOOT_ALIGN equ 1 << 0
 MULTIBOOT_MEMINFO equ 1 << 1
 MULTIBOOT_FLAGS equ MULTIBOOT_ALIGN | MULTIBOOT_MEMINFO
@@ -14,14 +14,14 @@ section .bss
 align 16
 stack_bottom:
     resb 16384
-stack_top
+
 
 section .text
 global start
 extern kmain
 
 start:
-    mov esp, stack_top
+    mov esp, stack_bottom + 16384
 
     push ebx
     push eax
@@ -33,6 +33,10 @@ start:
     hlt
     jmp .hang
 
+global gdt_flush
+extern gdt_ptr
+
+
 gdt_flush:
     lgdt [gdt_ptr]
     mov ax, 0x10
@@ -42,7 +46,6 @@ gdt_flush:
     mov gs, ax
     mov ss, ax
     jmp 0x08:.flush
-
 .flush:
     ret
 

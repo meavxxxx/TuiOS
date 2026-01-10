@@ -32,14 +32,6 @@ static int ctrl_pressed = 0;
 static int alt_pressed = 0;
 static int caps_lock = 0;
 
-static void add_to_buffer(char c) {
-    int next = (key_buffer_write + 1) % KEY_BUFFER_SIZE;
-    if (next != key_buffer_read) {
-        key_buffer[key_buffer_write] = c;
-        key_buffer_write = next;
-    }
-}
-
 static void keyboard_callback(registers_t* regs) {
     (void)regs;
 
