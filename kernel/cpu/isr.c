@@ -73,4 +73,75 @@ void isr_init(void) {
     idt_set_gate(29, (uint32_t)isr29, 0x08, 0x8E);
     idt_set_gate(30, (uint32_t)isr30, 0x08, 0x8E);
     idt_set_gate(31, (uint32_t)isr31, 0x08, 0x8E);
+};
+
+static void pic_remap(void) {
+    
+    port_byte_out(0x20, 0x11);
+    port_byte_out(0xA0, 0x11);
+    
+    
+    port_byte_out(0x21, 0x20);
+    port_byte_out(0xA1, 0x28);
+    
+    
+    port_byte_out(0x21, 0x04);
+    port_byte_out(0xA1, 0x02);
+    
+    
+    port_byte_out(0x21, 0x01);
+    port_byte_out(0xA1, 0x01);
+    
+    
+    port_byte_out(0x21, 0x00);
+    port_byte_out(0xA1, 0x00);
+}
+
+void irq_init(void) {
+    pic_remap();
+    
+    idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E);
+    idt_set_gate(33, (uint32_t)irq1, 0x08, 0x8E);
+    idt_set_gate(34, (uint32_t)irq2, 0x08, 0x8E);
+    idt_set_gate(35, (uint32_t)irq3, 0x08, 0x8E);
+    idt_set_gate(36, (uint32_t)irq4, 0x08, 0x8E);
+    idt_set_gate(37, (uint32_t)irq5, 0x08, 0x8E);
+    idt_set_gate(38, (uint32_t)irq6, 0x08, 0x8E);
+    idt_set_gate(39, (uint32_t)irq7, 0x08, 0x8E);
+    idt_set_gate(40, (uint32_t)irq8, 0x08, 0x8E);
+    idt_set_gate(41, (uint32_t)irq9, 0x08, 0x8E);
+    idt_set_gate(42, (uint32_t)irq10, 0x08, 0x8E);
+    idt_set_gate(43, (uint32_t)irq11, 0x08, 0x8E);
+    idt_set_gate(44, (uint32_t)irq12, 0x08, 0x8E);
+    idt_set_gate(45, (uint32_t)irq13, 0x08, 0x8E);
+    idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
+    idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
+}
+
+void register_interrupt_handler(uint8_t n, isr_handler_t handler) {
+    interrupt_handlers[n] = handler;
+}
+
+void isr_handler(registers_t* regs) {
+    if (interrupt_handlers[regs -> int_no] != 0) {
+        isr_handler_t handler = interrupt_handlers[regs -> int_no];
+        handler(regs);
+    } else {
+        kprint("Unhandled exception: ");
+        kprint(exception_messages[regs -> int_no]);
+        kprint("\n");
+        for(;;);
+    }
+}
+
+void irq_handler(registers_t* regs) {
+    if (regs -> int_no >= 40) {
+        port_byte_out(0xA0, 0x20);
+    }
+    port_byte_out(0x20, 0x20);
+
+    if (interrupt_handlers[regs -> int_no] != 0) {
+        isr_handler_t handler = interrupt_handlers[regs -> int_no];
+        handler(regs);
+    }
 }
