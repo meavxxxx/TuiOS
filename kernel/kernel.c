@@ -7,6 +7,7 @@
 #include "mm/pmm.h"
 #include "mm/vmm.h"
 #include "mm/heap.h"
+#include "libc/stdint.h"
 
 typedef struct multiboot_info {
     uint32_t flags;

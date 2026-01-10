@@ -1,7 +1,7 @@
 #ifndef ISR_H
 #define ISR_H
 
-#include <stdint.h>
+#include "../libc/stdint.h"
 
 typedef struct registers {
     uint32_t ds;

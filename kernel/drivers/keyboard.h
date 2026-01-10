@@ -1,7 +1,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include <stdint.h>
+#include "../libc/stdint.h"
 
 #define KEY_BUFFER_SIZE 256
 

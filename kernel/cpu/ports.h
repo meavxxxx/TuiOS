@@ -1,7 +1,7 @@
 #ifndef PORTS_H
 #define PORTS_H
 
-#include <stdint.h>
+#include "../libc/stdint.h"
 
 static inline uint8_t port_byte_in(uint16_t port) {
     uint8_t result;
@@ -9,9 +9,9 @@ static inline uint8_t port_byte_in(uint16_t port) {
     return result;
 }
 
-static inline void port_byte_out(uint16_t port, uint8_t data) [
-    asn volatile("out %%al, %%dx" : : "a" (data), "d" (port));
-]
+static inline void port_byte_out(uint16_t port, uint8_t data) {
+    asm volatile("out %%al, %%dx" : : "a" (data), "d" (port));
+}
 
 static inline uint16_t port_word_in(uint16_t port) {
     uint16_t result;

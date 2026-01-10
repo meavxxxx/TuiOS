@@ -1,7 +1,7 @@
 #ifndef PMM_H
 #define PMM_H
 
-#include <stdint.h>
+#include "../libc/stdint.h"
 
 #define PAGE_SIZE 4096
 #define PAGES_PER_BYTE 8
