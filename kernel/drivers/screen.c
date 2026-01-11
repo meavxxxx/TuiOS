@@ -116,6 +116,33 @@ void kprint_hex(uint32_t n) {
 }
 
 void kprint_dec(uint32_t n) {
-    (void)n;
-    kprint("[NUM]");   
+    if (n == 0) {
+        screen_putchar('0');
+        return;
+    }
+
+    char buf[16];
+    int i = 0;
+
+    while (n > 0) {
+        uint32_t q = (n >> 1) + (n >> 2);
+        q = q + (q >> 4);
+        q = q + (q >> 8);
+        q = q + (q >> 16);
+        q = q >> 3;
+
+        uint32_t r = n - ((q << 3) + (q << 1));
+
+        if (r > 9) {
+            q++;
+            r -= 10;
+        }
+
+        buf[i++] = '0' + r;
+        n = q;
+    }
+
+    while (i > 0) {
+        screen_putchar(buf[--i]);
+    }
 }
