@@ -14,6 +14,7 @@ isr_common_stub:
     mov fs, ax
     mov gs, ax
     
+    push esp
     call isr_handler         
     
     pop eax                  
@@ -39,6 +40,7 @@ irq_common_stub:
     mov fs, ax
     mov gs, ax
     
+    push esp
     call irq_handler
     
     pop eax

@@ -31,11 +31,26 @@ void pmm_init(uint32_t mem_size) {
         page_bitmap[i] = 0;
     }
 
+    // Зарезервируем страницы под ядро и область битовой карты
     uint32_t kernel_pages = (0x100000 + 0x400000) / PAGE_SIZE;
-
+    
+    // Резервируем также память под саму битовую карту
+    uint32_t bitmap_pages = (bitmap_size * sizeof(uint32_t) + PAGE_SIZE - 1) / PAGE_SIZE;
+    uint32_t bitmap_start_page = ((uint32_t)page_bitmap) / PAGE_SIZE;
+    
     for (uint32_t i = 0; i < kernel_pages; i++) {
-        bitmap_set(i);
-        used_pages++;
+        if (i < total_pages) {
+            bitmap_set(i);
+            used_pages++;
+        }
+    }
+    
+    // Резервируем страницы под битовую карту
+    for (uint32_t i = bitmap_start_page; i < bitmap_start_page + bitmap_pages; i++) {
+        if (i < total_pages) {
+            bitmap_set(i);
+            used_pages++;
+        }
     }
 }
 

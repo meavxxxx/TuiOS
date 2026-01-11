@@ -12,7 +12,7 @@ static void timer_callback(registers_t* regs) {
 void timer_init(uint32_t frequency) {
     register_interrupt_handler(32, timer_callback);
 
-    uint32_t divisor = 1193180;
+    uint32_t divisor = 1193180 / frequency;
 
     port_byte_out(0x43, 0x36);
 
