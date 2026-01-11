@@ -18,7 +18,7 @@ static inline void bitmap_clear(uint32_t page) {
 
 static inline int bitmap_test(uint32_t page) {
     uint32_t index = page >> 5;
-    uint32_t bit = page % 31;
+    uint32_t bit = page & 31;
     return page_bitmap[index] & (1U << bit);
 }
 
