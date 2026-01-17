@@ -57,39 +57,33 @@ static void page_fault_handler(registers_t* regs) {
     for(;;);
 }
 
-
-static uint32_t initial_page_directory[1024] __attribute__((aligned(4096)));
-static uint32_t initial_page_table_0[1024] __attribute__((aligned(4096)));
-static uint32_t initial_page_table_1[1024] __attribute__((aligned(4096)));
-
 void vmm_init(void) {
     extern void kprint(const char*);
 
     kprint("VMM: Setting up initial page directory...\n");
 
+    uint32_t* page_directory = (uint32_t*)0x9C000;
+    uint32_t* page_table_0 = (uint32_t*)0x9D000;
+    uint32_t* page_table_1 = (uint32_t*)0x9E000;
 
     for (int i = 0; i < 1024; i++) {
-        initial_page_directory[i] = 0;
+        page_directory[i] = 0;
     }
-
 
     for (int i = 0; i < 1024; i++) {
-        initial_page_table_0[i] = (i * 0x1000) | PAGE_PRESENT | PAGE_WRITE;
+        page_table_0[i] = (i * 0x1000) | PAGE_PRESENT | PAGE_WRITE;
     }
-
 
     for (int i = 0; i < 1024; i++) {
-        initial_page_table_1[i] = ((i + 1024) * 0x1000) | PAGE_PRESENT | PAGE_WRITE;
+        page_table_1[i] = ((i + 1024) * 0x1000) | PAGE_PRESENT | PAGE_WRITE;
     }
 
-
-    initial_page_directory[0] = ((uint32_t)initial_page_table_0) | PAGE_PRESENT | PAGE_WRITE;
-    initial_page_directory[1] = ((uint32_t)initial_page_table_1) | PAGE_PRESENT | PAGE_WRITE;
+    page_directory[0] = ((uint32_t)page_table_0) | PAGE_PRESENT | PAGE_WRITE;
+    page_directory[1] = ((uint32_t)page_table_1) | PAGE_PRESENT | PAGE_WRITE;
 
     kprint("VMM: Identity mapping complete\n");
 
-
-    kernel_directory = (page_directory_t*)initial_page_directory;
+    kernel_directory = (page_directory_t*)page_directory;
     current_directory = kernel_directory;
 
     kprint("VMM: Registering page fault handler...\n");
@@ -97,9 +91,7 @@ void vmm_init(void) {
 
     kprint("VMM: Enabling paging...\n");
 
-
-    asm volatile("mov %0, %%cr3" : : "r" (initial_page_directory));
-
+    asm volatile("mov %0, %%cr3" : : "r" (page_directory));
 
     uint32_t cr0;
     asm volatile("mov %%cr0, %0" : "=r" (cr0));
@@ -110,7 +102,6 @@ void vmm_init(void) {
     kprint("VMM: Paging enabled!\n");
 }
 
-// Helper function to flush TLB by reloading CR3
 static inline void flush_tlb(void) {
     uint32_t cr3;
     asm volatile("mov %%cr3, %0" : "=r" (cr3));
@@ -126,7 +117,6 @@ void vmm_map_page(uint32_t virt, uint32_t phys, uint32_t flags) {
     uint32_t pt_index = (virt >> 12) & 0x3FF;
     table->entries[pt_index] = (phys & 0xFFFFF000) | (flags & 0xFFF) | PAGE_PRESENT;
     
-    // Flush TLB to ensure the mapping takes effect
     flush_tlb();
 }
 
@@ -139,7 +129,6 @@ void vmm_unmap_page(uint32_t virt) {
     uint32_t pt_index = (virt >> 12) & 0x3FF;
     table->entries[pt_index] = 0;
 
-    // Flush TLB
     flush_tlb();
 }
 
