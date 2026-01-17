@@ -47,8 +47,7 @@ void kmain(uint32_t magic, multiboot_info_t* mboot) {
     irq_init();
     kprint("[OK] IRQ initialized\n");
 
-    // Инициализация PMM до VMM, как и должно быть
-    uint32_t total_mem = (mboot -> mem_lower + mboot -> mem_upper) * 1024;
+    uint32_t total_mem = (mboot->mem_lower + mboot->mem_upper) * 1024;
     pmm_init(total_mem);
     kprint("[OK] Physical memory manager initialized\n");
 
@@ -58,12 +57,14 @@ void kmain(uint32_t magic, multiboot_info_t* mboot) {
     heap_init();
     kprint("[OK] Heap initialized\n");
 
+    keyboard_init();
+    kprint("[OK] Keyboard initialized\n");
+
+    timer_init(100);
+    kprint("[OK] Timer initialized\n");
+
     asm volatile("sti");
     kprint("[OK] Interrupts enabled\n");
-
-    kprint("Initializing timer...\n");
-    //timer_init(100);
-    kprint("[OK] Timer initialized\n");
 
     kprint("\n========================\n");
     kprint("TuiOS Ready!\n");
