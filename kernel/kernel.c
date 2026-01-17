@@ -8,6 +8,7 @@
 #include "mm/vmm.h"
 #include "mm/heap.h"
 #include "libc/stdint.h"
+#include "libc/string.h"
 
 typedef struct multiboot_info {
     uint32_t flags;
@@ -71,7 +72,41 @@ void kmain(uint32_t magic, multiboot_info_t* mboot) {
     kprint("Type 'help' for available commands\n\n");
     kprint("TuiOS> ");
 
+    char cmd[256];
+    
     for(;;) {
+        if (keyboard_get_command(cmd, 256)) {
+            if (cmd[0] == '\0') {
+                kprint("TuiOS> ");
+            } else if (strcmp(cmd, "help") == 0) {
+                kprint("Available commands:\n");
+                kprint("  help    - Show this help\n");
+                kprint("  clear   - Clear screen\n");
+                kprint("  hello   - Print hello message\n");
+                kprint("  mem     - Show memory info\n");
+                kprint("TuiOS> ");
+            } else if (strcmp(cmd, "clear") == 0) {
+                screen_clear();
+                kprint("TuiOS> ");
+            } else if (strcmp(cmd, "hello") == 0) {
+                kprint("Hello from TuiOS!\n");
+                kprint("TuiOS> ");
+            } else if (strcmp(cmd, "mem") == 0) {
+                kprint("Total memory: ");
+                kprint_dec(pmm_get_total_memory() / 1024);
+                kprint(" KB\n");
+                kprint("Free memory: ");
+                kprint_dec(pmm_get_free_memory() / 1024);
+                kprint(" KB\n");
+                kprint("TuiOS> ");
+            } else {
+                kprint("Unknown command: ");
+                kprint(cmd);
+                kprint("\n");
+                kprint("TuiOS> ");
+            }
+        }
+        
         asm volatile("hlt");
     }
 }
