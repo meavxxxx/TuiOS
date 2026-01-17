@@ -57,7 +57,7 @@ static void page_fault_handler(registers_t* regs) {
     for(;;);
 }
 
-// Static page tables for initial identity mapping (first 8MB = 2 tables)
+
 static uint32_t initial_page_directory[1024] __attribute__((aligned(4096)));
 static uint32_t initial_page_table_0[1024] __attribute__((aligned(4096)));
 static uint32_t initial_page_table_1[1024] __attribute__((aligned(4096)));
@@ -67,28 +67,28 @@ void vmm_init(void) {
 
     kprint("VMM: Setting up initial page directory...\n");
 
-    // Initialize page directory - all entries invalid initially
+
     for (int i = 0; i < 1024; i++) {
         initial_page_directory[i] = 0;
     }
 
-    // Initialize first page table (covers 0x0 - 0x400000, 4MB)
+
     for (int i = 0; i < 1024; i++) {
         initial_page_table_0[i] = (i * 0x1000) | PAGE_PRESENT | PAGE_WRITE;
     }
 
-    // Initialize second page table (covers 0x400000 - 0x800000, 4MB)
+
     for (int i = 0; i < 1024; i++) {
         initial_page_table_1[i] = ((i + 1024) * 0x1000) | PAGE_PRESENT | PAGE_WRITE;
     }
 
-    // Map first two page tables into directory (identity map first 8MB)
+
     initial_page_directory[0] = ((uint32_t)initial_page_table_0) | PAGE_PRESENT | PAGE_WRITE;
     initial_page_directory[1] = ((uint32_t)initial_page_table_1) | PAGE_PRESENT | PAGE_WRITE;
 
     kprint("VMM: Identity mapping complete\n");
 
-    // Set up global pointers
+
     kernel_directory = (page_directory_t*)initial_page_directory;
     current_directory = kernel_directory;
 
@@ -97,14 +97,14 @@ void vmm_init(void) {
 
     kprint("VMM: Enabling paging...\n");
 
-    // Load page directory into CR3
+
     asm volatile("mov %0, %%cr3" : : "r" (initial_page_directory));
 
-    // Enable paging
+
     uint32_t cr0;
     asm volatile("mov %%cr0, %0" : "=r" (cr0));
-    cr0 |= 0x80000000;  // Set PG bit
-    cr0 |= 0x10000;     // Set WP bit
+    cr0 |= 0x80000000;
+    cr0 |= 0x10000;
     asm volatile("mov %0, %%cr0" : : "r" (cr0));
 
     kprint("VMM: Paging enabled!\n");
