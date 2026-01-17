@@ -1,32 +1,31 @@
 extern isr_handler
 extern irq_handler
 
-; Common ISR stub
 isr_common_stub:
-    pusha                    
+    pusha
     
     mov ax, ds
-    push eax                 
+    push eax
     
-    mov ax, 0x10             
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     
     push esp
-    call isr_handler         
+    call isr_handler
+    add esp, 4
     
-    pop eax                  
+    pop eax
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     
-    popa                     
-    add esp, 8               
-    iret                     
-
+    popa
+    add esp, 8
+    iret
 
 irq_common_stub:
     pusha
@@ -42,27 +41,26 @@ irq_common_stub:
     
     push esp
     call irq_handler
+    add esp, 4
     
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    pop ebx
+    mov ds, bx
+    mov es, bx
+    mov fs, bx
+    mov gs, bx
     
     popa
     add esp, 8
     iret
 
-
 %macro ISR_NOERRCODE 1
     global isr%1
     isr%1:
         cli
-        push byte 0          
-        push byte %1         
+        push byte 0
+        push byte %1
         jmp isr_common_stub
 %endmacro
-
 
 %macro ISR_ERRCODE 1
     global isr%1
@@ -72,7 +70,6 @@ irq_common_stub:
         jmp isr_common_stub
 %endmacro
 
-
 %macro IRQ 2
     global irq%1
     irq%1:
@@ -81,7 +78,6 @@ irq_common_stub:
         push byte %2
         jmp irq_common_stub
 %endmacro
-
 
 ISR_NOERRCODE 0
 ISR_NOERRCODE 1
@@ -115,7 +111,6 @@ ISR_NOERRCODE 28
 ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
-
 
 IRQ 0, 32
 IRQ 1, 33
