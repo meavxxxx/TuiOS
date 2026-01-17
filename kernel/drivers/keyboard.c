@@ -82,6 +82,7 @@ static void keyboard_callback(registers_t* regs) {
         screen_putchar('\n');
         command_buffer[command_index] = '\0';
         command_ready = 1;
+        command_index = 0;
         return;
     } else if (ascii == '\b') {
         if (command_index > 0) {
@@ -133,9 +134,8 @@ int keyboard_get_command(char* buffer, int max_len) {
     }
     buffer[len] = '\0';
 
-    command_index = 0;
     command_buffer[0] = '\0';
     command_ready = 0;
 
-    return len;
+    return 1;
 }

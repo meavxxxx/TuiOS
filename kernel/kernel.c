@@ -75,7 +75,8 @@ void kmain(uint32_t magic, multiboot_info_t* mboot) {
     char cmd[256];
     
     for(;;) {
-        if (keyboard_get_command(cmd, 256)) {
+        int len = keyboard_get_command(cmd, 256);
+        if (len) {
             if (cmd[0] == '\0') {
                 kprint("TuiOS> ");
             } else if (strcmp(cmd, "help") == 0) {
