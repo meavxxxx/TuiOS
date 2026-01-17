@@ -2,7 +2,7 @@
 #include "pmm.h"
 #include "vmm.h"
 
-#define HEAP_START 0xC0000000
+#define HEAP_START 0x00600000
 #define HEAP_INITIAL_SIZE 0x100000
 #define HEAP_MAGIC 0x123890AB
 
@@ -26,13 +26,15 @@ void heap_init(void) {
 
     for (uint32_t i = HEAP_START; i < heap_end; i += PAGE_SIZE) {
         uint32_t phys = pmm_alloc_page();
-        vmm_map_page(i, phys, PAGE_PRESENT | PAGE_WRITE);
+        if (phys) {
+            vmm_map_page(i, phys, PAGE_PRESENT | PAGE_WRITE);
+        }
     }
 
-    heap_start -> magic = HEAP_MAGIC;
-    heap_start -> size = HEAP_INITIAL_SIZE - sizeof(heap_block_t);
-    heap_start -> is_free = 1;
-    heap_start -> next = 0;
+    heap_start->magic = HEAP_MAGIC;
+    heap_start->size = HEAP_INITIAL_SIZE - sizeof(heap_block_t);
+    heap_start->is_free = 1;
+    heap_start->next = 0;
 }
 
 static void expand_heap(uint32_t size) {
@@ -40,7 +42,9 @@ static void expand_heap(uint32_t size) {
 
     for (uint32_t i = heap_end; i < new_end; i += PAGE_SIZE) {
         uint32_t phys = pmm_alloc_page();
-        vmm_map_page(i, phys, PAGE_PRESENT | PAGE_WRITE);
+        if (phys) {
+            vmm_map_page(i, phys, PAGE_PRESENT | PAGE_WRITE);
+        }
     }
 
     heap_end = new_end;
@@ -56,27 +60,27 @@ void* kmalloc(uint32_t size) {
     heap_block_t* current = heap_start;
 
     while (current) {
-        if (current -> magic != HEAP_MAGIC) {
+        if (current->magic != HEAP_MAGIC) {
             return 0;
         }
 
-        if (current -> is_free && current -> size >= size) {
-            if (current -> size > size + sizeof(heap_block_t) + 16) {
+        if (current->is_free && current->size >= size) {
+            if (current->size > size + sizeof(heap_block_t) + 16) {
                 heap_block_t* new_block = (heap_block_t*)((uint32_t)current + sizeof(heap_block_t) + size);
-                new_block -> magic = HEAP_MAGIC;
-                new_block -> size = current -> size - size - sizeof(heap_block_t);
-                new_block -> is_free = 1;
-                new_block -> next = current -> next;
+                new_block->magic = HEAP_MAGIC;
+                new_block->size = current->size - size - sizeof(heap_block_t);
+                new_block->is_free = 1;
+                new_block->next = current->next;
 
-                current -> size = size;
-                current -> next = new_block;
+                current->size = size;
+                current->next = new_block;
             }
 
-            current -> is_free = 0;
+            current->is_free = 0;
             return (void*)((uint32_t)current + sizeof(heap_block_t));
         }
 
-        current = current -> next;
+        current = current->next;
     }
 
     expand_heap(size + sizeof(heap_block_t));
@@ -102,14 +106,14 @@ void kfree(void* ptr) {
 
     heap_block_t* block = (heap_block_t*)((uint32_t)ptr - sizeof(heap_block_t));
 
-    if (block -> magic != HEAP_MAGIC) {
+    if (block->magic != HEAP_MAGIC) {
         return;
     }
 
-    block -> is_free = 1;
+    block->is_free = 1;
 
-    if (block -> next && block -> next -> is_free) {
-        block -> size += sizeof(heap_block_t) + block -> next -> size;
-        block -> next = block -> next -> next;
+    if (block->next && block->next->is_free) {
+        block->size += sizeof(heap_block_t) + block->next->size;
+        block->next = block->next->next;
     }
 }
